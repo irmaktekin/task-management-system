@@ -1,4 +1,4 @@
-package com.irmaktekin.task_management_system;
+package com.irmaktekin.task.management.system;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
