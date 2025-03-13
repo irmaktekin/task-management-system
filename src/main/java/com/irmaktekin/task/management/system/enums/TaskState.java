@@ -1,4 +1,4 @@
-package com.irmaktekin.task.management.system.common;
+package com.irmaktekin.task.management.system.enums;
 
 public enum TaskState {
     BACKLOG,
