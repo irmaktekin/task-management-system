@@ -1,64 +1,55 @@
 package com.irmaktekin.task.management.system.service;
 
 import com.irmaktekin.task.management.system.common.exception.UserNotFoundException;
+import com.irmaktekin.task.management.system.dto.request.UserCreateRequest;
 import com.irmaktekin.task.management.system.entity.User;
 import com.irmaktekin.task.management.system.repository.UserRepository;
+import com.irmaktekin.task.management.system.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-
 @ExtendWith(MockitoExtension.class)
 public class UserServiceImplTest {
 
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userService;
 
     @Mock
     private UserRepository userRepository;
 
     private User user1;
-    private User user2;
     private UUID userId1;
-    private UUID userId2;
 
     @BeforeEach
     public void setUp(){
-        MockitoAnnotations.openMocks(this);
         userId1 = UUID.randomUUID();
-        userId2 = UUID.randomUUID();
+
         user1 = User.builder().id(userId1).fullName("Irmak Tekin")
                 .email("irmaktekin@gmail.com").password("testpassword123.")
                 .isActive(true).build();
-
-        user2 = User.builder().id(userId2).fullName("Irmak Tekin")
-                .email("aysetekin@gmail.com").password("testpasswor456.")
-                .isActive(true).build();
     }
+
     @Test
-    public void shouldSaveUser_whenUserExists(){
-        when(userRepository.save(user1)).thenReturn(user1);
+    public void shouldCreateUser_whenRequestIsValid(){
+        var request = new UserCreateRequest("Irmak Tekin","irmaktekin@test.com","128310",true);
+        UUID id3 = UUID.randomUUID();
+        User user = User.builder().id(id3).fullName(request.fullName()).email(request.email()).password(request.password()).isActive(request.isActive()).build();
 
-        User createdUser = userService.createUser(user1);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        userService.createUser(request);
 
-        assertNotNull(createdUser);
-        assertEquals("Irmak Tekin",createdUser.getFullName());
-        assertEquals("irmaktekin@gmail.com",createdUser.getEmail());
-        assertEquals("testpassword123.",createdUser.getPassword());
-        assertEquals(true,createdUser.isActive());
-
-        verify(userRepository,times(1)).save(createdUser);
+       verify(userRepository,times(1)).save(any(User.class));
     }
 
     @Test
@@ -73,24 +64,20 @@ public class UserServiceImplTest {
 
         verify(userRepository,times(1)).findById(userId1);
         verify(userRepository,times(1)).save(user1);
-
     }
 
     @Test
     public void shouldReturnAllUsers(){
-        List<User> users = List.of(user1, user2);
-        when(userRepository.findAll()).thenReturn(users);
+        var page = 0;
+        var size = 20;
 
-        List<User> result = userService.getUsers();
+        userService.getUsers(page,size);
 
-        assertNotNull(result);
-        assertEquals(2,result.size());
-
-        verify(userRepository,times(1)).findAll();
+        verify(userRepository,times(1)).getUsers(PageRequest.of(page,size));
     }
 
     @Test
-    public void shouldReturnUser_whenUserExist() throws Exception{
+    public void shouldReturnUser_whenUserExist(){
         when(userRepository.findById(userId1)).thenReturn(Optional.of(user1));
 
         User foundUser = userService.findUserById(userId1);
@@ -102,7 +89,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void shouldThrowException_whenUserNotFoundById(){
+    public void shouldThrowException_whenUserNotFound(){
         when(userRepository.findById(userId1)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class,()->userService.findUserById(userId1));
@@ -112,8 +99,9 @@ public class UserServiceImplTest {
     public void shouldDeleteUserWhenUserExist(){
         when(userRepository.findById(userId1)).thenReturn(Optional.of(user1));
 
-        userService.deleteUser(user1.getId());
+        userService.deleteUser(userId1);
 
-        verify(userRepository,times(1)).delete(user1);
+        verify(userRepository,times(1)).findById(userId1);
+        verify(userRepository,times(1)).save(user1);
     }
 }
