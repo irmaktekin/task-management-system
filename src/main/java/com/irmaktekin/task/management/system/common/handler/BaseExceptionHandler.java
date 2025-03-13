@@ -1,6 +1,6 @@
-package com.irmaktekin.task.management.system.common.exception.handler;
+package com.irmaktekin.task.management.system.common.handler;
 
-import com.irmaktekin.task.management.system.common.exception.ErrorResponseDto;
+import com.irmaktekin.task.management.system.common.ErrorResponseDto;
 import com.irmaktekin.task.management.system.common.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
