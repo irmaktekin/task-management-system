@@ -33,7 +33,7 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<Task> createUser(@RequestBody TaskCreateRequest taskCreateRequest){
+    public ResponseEntity<Task> createTask(@RequestBody TaskCreateRequest taskCreateRequest){
         Task createdTask = taskService.createTask(taskCreateRequest);
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/api/v1/tasks/{id}")
