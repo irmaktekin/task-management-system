@@ -4,5 +4,10 @@ public enum TaskState {
     BACKLOG,
     IN_ANALYSIS,
     IN_DEVELOPMENT,
-    COMPLETED
+    COMPLETED;
+
+    @Override
+    public String toString(){
+        return name();
+    }
 }

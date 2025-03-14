@@ -4,5 +4,10 @@ public enum TaskPriority {
     LOW,
     MEDIUM,
     HIGH,
-    CRITICAL
+    CRITICAL;
+
+    @Override
+    public String toString(){
+        return name();
+    }
 }
