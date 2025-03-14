@@ -1,15 +1,10 @@
 package com.irmaktekin.task.management.system.service.impl;
 
 import com.irmaktekin.task.management.system.common.exception.TaskNotFoundException;
-import com.irmaktekin.task.management.system.common.exception.UserNotFoundException;
 import com.irmaktekin.task.management.system.dto.request.TaskCreateRequest;
-import com.irmaktekin.task.management.system.dto.request.UserCreateRequest;
 import com.irmaktekin.task.management.system.dto.response.TaskDto;
-import com.irmaktekin.task.management.system.dto.response.UserDto;
 import com.irmaktekin.task.management.system.entity.Task;
-import com.irmaktekin.task.management.system.entity.User;
 import com.irmaktekin.task.management.system.repository.TaskRepository;
-import com.irmaktekin.task.management.system.repository.UserRepository;
 import com.irmaktekin.task.management.system.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
