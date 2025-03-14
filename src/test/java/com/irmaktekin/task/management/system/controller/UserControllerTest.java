@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.irmaktekin.task.management.system.common.exception.UserNotFoundException;
 import com.irmaktekin.task.management.system.dto.request.UserCreateRequest;
 import com.irmaktekin.task.management.system.dto.response.UserDto;
+import com.irmaktekin.task.management.system.entity.Task;
 import com.irmaktekin.task.management.system.entity.User;
+import com.irmaktekin.task.management.system.enums.TaskPriority;
+import com.irmaktekin.task.management.system.enums.TaskState;
 import com.irmaktekin.task.management.system.repository.UserRepository;
 import com.irmaktekin.task.management.system.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,12 +50,20 @@ public class UserControllerTest {
 
     private User user;
     private UUID userId;
+    private Task task;
+    private UUID taskId;
     private UserDto userDto;
 
     @BeforeEach
     void setUp(){
         userId = UUID.randomUUID();
-        user = new User(userId,"Irmak Tekin","irmak@test.com","1234",true);
+        taskId = UUID.randomUUID();
+
+        user = User.builder().id(userId).fullName("Irmak Tekin").email("irmak@test.com")
+                .password("1234").isActive(true).build();
+        task = Task.builder().taskPriority(TaskPriority.HIGH).taskState(TaskState.IN_DEVELOPMENT)
+                .assignee(user).build();
+
         userDto = new UserDto(userId,"Irmak Tekin","irmak@test.com","1234",true);
         mockMvc= MockMvcBuilders.standaloneSetup(userController).build();
     }
