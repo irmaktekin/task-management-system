@@ -15,8 +15,8 @@ import java.util.UUID;
 public interface TaskRepository extends JpaRepository<Task, UUID> {
     @Query("""
             Select new com.irmaktekin.task.management.system.dto.response.TaskDto(
-                u.id, u.fullName, u.email, u.password,u.isActive)
-            From Task u
+                u.id, t.userStoryDescription, t.acceptanceCriteria)
+            From Task t
             """)
     Page<TaskDto> getTasks(Pageable pageable);
 }
