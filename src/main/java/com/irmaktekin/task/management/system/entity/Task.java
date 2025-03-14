@@ -1,26 +1,40 @@
 package com.irmaktekin.task.management.system.entity;
 
-import com.irmaktekin.task.management.system.common.TaskPriority;
-import com.irmaktekin.task.management.system.common.TaskState;
+import com.irmaktekin.task.management.system.enums.TaskPriority;
+import com.irmaktekin.task.management.system.enums.TaskState;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
 import java.util.UUID;
 
 @Entity
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(nullable = false)
+    private String userStoryDescription;
+
+    @Column(nullable = false)
+    private String acceptanceCriteria;
+
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TaskState taskState;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TaskPriority taskPriority;
 
-    private String title;
-    private String description;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignee_id")
     private User assignee;
-    private List<Comment> comments;
 }
