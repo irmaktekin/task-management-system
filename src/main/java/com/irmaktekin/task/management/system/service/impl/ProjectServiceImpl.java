@@ -7,10 +7,8 @@ import com.irmaktekin.task.management.system.dto.response.ProjectDto;
 import com.irmaktekin.task.management.system.entity.Project;
 import com.irmaktekin.task.management.system.entity.User;
 import com.irmaktekin.task.management.system.repository.ProjectRepository;
-import com.irmaktekin.task.management.system.repository.UserRepository;
 import com.irmaktekin.task.management.system.service.ProjectService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
