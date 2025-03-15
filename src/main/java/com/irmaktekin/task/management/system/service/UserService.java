@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface UserService {
     User createUser(UserCreateRequest userCreateRequest);
-    User updateUser(UUID id, User user) throws UserNotFoundException;
+    User updateUser(User user) throws UserNotFoundException;
     Page<UserDto> getUsers(int page, int size);
     User findUserById(UUID id) throws UserNotFoundException;
     void deleteUser(UUID id);
