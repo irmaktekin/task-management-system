@@ -8,10 +8,11 @@ import com.irmaktekin.task.management.system.repository.TaskRepository;
 import com.irmaktekin.task.management.system.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -46,8 +47,18 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<TaskDto> getTasks(int page, int size) {
-        return taskRepository.getTasks(PageRequest.of(page,size));
+    public Page<TaskDto> getTasks(Pageable pageable) {
+        return Optional.of(taskRepository.getTasks(pageable))
+                .orElse(Page.empty())
+                .map(task -> new TaskDto(
+                        task.getId(),
+                        task.getUserStoryDescription(),
+                        task.getTaskPriority(),
+                        task.getTaskState(),
+                        task.getAssignee().getId(),
+                        task.getAssignee().getFullName(),
+                        task.getAcceptanceCriteria()
+                ));
     }
 
     @Override
