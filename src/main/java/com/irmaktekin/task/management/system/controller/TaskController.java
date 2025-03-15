@@ -5,6 +5,7 @@ import com.irmaktekin.task.management.system.dto.response.TaskDto;
 import com.irmaktekin.task.management.system.entity.Task;
 import com.irmaktekin.task.management.system.service.TaskService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class TaskController {
     @GetMapping
     public Page<TaskDto> getTasks(@RequestParam(defaultValue = "0")int page,
                                   @RequestParam(defaultValue = "20") int size){
-        return taskService.getTasks(page,size);
+        return taskService.getTasks(PageRequest.of(page,size));
     }
 
     @GetMapping("/{id}")
