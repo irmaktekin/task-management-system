@@ -5,3 +5,5 @@ HELP.md
 *.iws
 *.iml
 *.ipr
+
+target/
