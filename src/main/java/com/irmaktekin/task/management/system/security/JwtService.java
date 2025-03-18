@@ -12,6 +12,7 @@ import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,10 +33,10 @@ public class JwtService {
         claims.put("iss","https://secure.genuinecoder.com");
         SecretKey key = generateKey();
         return Jwts.builder()
-                .claims(claims)
-                .subject(userDetails.getUsername())
-                .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(Instant.now().plusMillis(VALIDITY)))
+                .setClaims(claims)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(Date.from(Instant.now()))
+                .setExpiration(Date.from(Instant.now().plusMillis(VALIDITY)))
                 .signWith(key)
                 .compact();
     }
@@ -46,23 +47,26 @@ public class JwtService {
 
     private Claims getClaims(String jwt){
         SecretKey key = generateKey();
-        return Jwts.parser()
-                .verifyWith(key)
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
                 .build()
-                .parseSignedClaims(jwt)
-                .getPayload();
+                .parseClaimsJws(jwt)
+                .getBody();
     }
     public boolean isTokenValid(String jwt){
-        Claims claims = getClaims(jwt);
-        return claims.getExpiration().after(Date.from(Instant.now()));
+        try{
+            Claims claims = getClaims(jwt);
+            return claims.getExpiration().after(Date.from(Instant.now()));
+        }
+        catch (Exception e){
+            Logger.getLogger(JwtService.class.getName()).severe("Invalid JWT: " + e.getMessage());
+            return false;
+        }
+
     }
     public String extractUsername(String jwt){
         Claims claims = getClaims(jwt);
         return claims.getSubject();
-    }
-    public List<String> getRolesFromToken(String jwt){
-        Claims claims =getClaims(jwt);
-        return claims.get("roles",List.class);
     }
 }
 
