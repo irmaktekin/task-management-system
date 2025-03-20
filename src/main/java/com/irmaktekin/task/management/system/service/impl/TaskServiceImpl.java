@@ -106,7 +106,7 @@ public class TaskServiceImpl implements TaskService {
     @Transactional(readOnly = true)
     @Override
     public Page<TaskDto> getTasks(Pageable pageable) {
-        return taskRepository.getTasks(pageable)
+        return taskRepository.findByDeletedFalse(pageable)
                 .map(taskMapper::convertToDto);
     }
 
@@ -114,8 +114,8 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public TaskDto assignTaskToUser(UUID taskId, UUID userId) {
-        Task task =  taskRepository.findById(taskId).orElseThrow(()->new TaskNotFoundException("Task not found"));
-        User user = userRepository.findById(userId).orElseThrow(()->new UserNotFoundException("User not found"));
+        Task task =  taskRepository.findByIdAndDeletedFalse(taskId).orElseThrow(()->new TaskNotFoundException("Task not found"));
+        User user = userRepository.findByIdAndDeletedFalse(userId).orElseThrow(()->new UserNotFoundException("User not found"));
 
         if(isTaskAssignedToUser(task,userId)){
             return taskMapper.convertToDto(task);
@@ -139,7 +139,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskDto getTaskProgress(UUID taskId) {
-        Task task = taskRepository.findById(taskId)
+        Task task = taskRepository.findByIdAndDeletedFalse(taskId)
                 .orElseThrow(()->new TaskNotFoundException("Task not found"));
         return taskMapper.convertToDto(task);
     }
@@ -201,7 +201,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskDto updateTaskState(UUID taskId, TaskStatusUpdateRequest request) throws InvalidTaskStateException, TaskNotFoundException {
 
-        Task task = taskRepository.findById(taskId)
+        Task task = taskRepository.findByIdAndDeletedFalse(taskId)
                 .orElseThrow(()->new TaskNotFoundException("Task not found"));
 
         List<TaskState> validNextStates = VALID_TRANSITIONS.getOrDefault(task.getState(),List.of());
@@ -222,7 +222,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     public void checkReasonRequiredForTask(TaskState targetState,String reason){
-        if((targetState==TaskState.CANCELLED || targetState==TaskState.BLOCKED) && reason == null || reason.trim().isEmpty() ){
+        if((targetState==TaskState.CANCELLED || targetState==TaskState.BLOCKED) && (reason == null || reason.trim().isEmpty()) ){
             throw new TaskReasonRequiredException("Reason must be provided for" + targetState);
         }
     }
