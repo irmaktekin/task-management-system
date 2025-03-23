@@ -321,7 +321,7 @@ public class TaskServiceImplTest {
             taskService.checkReasonRequiredForTask(targetState, reason);
         });
 
-        assertEquals("Reason must be provided forCANCELLED", exception.getMessage());
+        assertEquals("Reason must be provided.", exception.getMessage());
     }
 
     @Test
@@ -333,7 +333,7 @@ public class TaskServiceImplTest {
             taskService.checkReasonRequiredForTask(targetState, reason);
         });
 
-        assertEquals("Reason must be provided forCANCELLED", exception.getMessage());
+        assertEquals("Reason must be provided.", exception.getMessage());
     }
 
     @Test
@@ -438,7 +438,7 @@ public class TaskServiceImplTest {
         TaskNotFoundException exception = assertThrows(TaskNotFoundException.class, () -> {
             taskService.assignTaskToUser(taskId, userId);
         });
-        assertEquals("Task not found", exception.getMessage());
+        assertEquals("Task not found.", exception.getMessage());
     }
 
     @Test
@@ -449,7 +449,7 @@ public class TaskServiceImplTest {
         UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
             taskService.assignTaskToUser(taskId, userId);
         });
-        assertEquals("User not found", exception.getMessage());
+        assertEquals("User not found.", exception.getMessage());
     }
 
     @Test
@@ -477,14 +477,14 @@ public class TaskServiceImplTest {
             taskService.checkReasonRequiredForTask(targetState, reason);
         });
 
-        assertEquals("Reason must be provided forCANCELLED", exception.getMessage());
+        assertEquals("Reason must be provided.", exception.getMessage());
 
         final String emptyReason = "";
         exception = assertThrows(TaskReasonRequiredException.class, () -> {
             taskService.checkReasonRequiredForTask(targetState, emptyReason);
         });
 
-        assertEquals("Reason must be provided forCANCELLED", exception.getMessage());    }
+        assertEquals("Reason must be provided.", exception.getMessage());    }
 
     @Test
     public void checkReasonRequiredForTask_ShouldNotThrowException_WhenStateIsCancelledAndReasonIsNotNullOrEmpty() {
@@ -515,7 +515,7 @@ public class TaskServiceImplTest {
             taskService.checkReasonRequiredForTask(targetState, reason);
         });
 
-        assertEquals("Reason must be provided forCANCELLED", exception.getMessage());
+        assertEquals("Reason must be provided.", exception.getMessage());
     }
 
     @Test
@@ -527,7 +527,7 @@ public class TaskServiceImplTest {
             taskService.checkReasonRequiredForTask(targetState, reason);
         });
 
-        assertEquals("Reason must be provided forCANCELLED", exception.getMessage());
+        assertEquals("Reason must be provided.", exception.getMessage().toString());
     }
 
     @Test
@@ -543,7 +543,7 @@ public class TaskServiceImplTest {
 
         TaskStateAlreadySameException exception = assertThrows(TaskStateAlreadySameException.class,
                 () -> taskService.updateTaskState(taskId, request));
-        assertEquals("Task is already in the IN_DEVELOPMENT", exception.getMessage());
+        assertEquals("Task is already in the same state.", exception.getMessage());
     }
 
     @Test
@@ -559,7 +559,7 @@ public class TaskServiceImplTest {
 
         TaskStateAlreadySameException exception = assertThrows(TaskStateAlreadySameException.class,
                 () -> taskService.updateTaskState(taskId, request));
-        assertEquals("Task is already in the CANCELLED", exception.getMessage());
+        assertEquals("Task is already in the same state.", exception.getMessage());
     }
 
     @Test
@@ -571,7 +571,7 @@ public class TaskServiceImplTest {
 
         TaskNotFoundException exception = assertThrows(TaskNotFoundException.class,
                 () -> taskService.updateTaskState(taskId, request));
-        assertEquals("Task not found", exception.getMessage());
+        assertEquals("Task not found.", exception.getMessage());
     }
     @Test
     public void assignTaskToUser_ShouldThrowException_WhenTaskNotFound() {
@@ -582,7 +582,7 @@ public class TaskServiceImplTest {
 
         TaskNotFoundException exception = assertThrows(TaskNotFoundException.class,
                 () -> taskService.assignTaskToUser(taskId, userId));
-        assertEquals("Task not found", exception.getMessage());
+        assertEquals("Task not found.", exception.getMessage());
     }
 
     @Test
@@ -750,6 +750,6 @@ public class TaskServiceImplTest {
             taskService.softDeleteTask(projectId);
         });
 
-        assertEquals("Task not found", exception.getMessage());
+        assertEquals("Task not found.", exception.getMessage());
     }
 }

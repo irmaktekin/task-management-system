@@ -1,5 +1,6 @@
 package com.irmaktekin.task.management.system.service.impl;
 
+import com.irmaktekin.task.management.system.common.ErrorMessage;
 import com.irmaktekin.task.management.system.common.exception.*;
 import com.irmaktekin.task.management.system.common.mapper.TaskMapper;
 import com.irmaktekin.task.management.system.dto.request.TaskCreateRequest;
@@ -52,7 +53,7 @@ public class TaskServiceImpl implements TaskService {
     public TaskDto createTask(TaskCreateRequest taskCreateRequest) throws Exception {
 
             User assignee = userRepository.findByIdAndDeletedFalse(taskCreateRequest.assignee().getId())
-                    .orElseThrow(()->new UserNotFoundException("User not found."));
+                    .orElseThrow(()->new UserNotFoundException(ErrorMessage.USER_NOT_FOUND));
 
         Task task = taskMapper.taskCreateRequestToTask(taskCreateRequest);
 
@@ -73,7 +74,7 @@ public class TaskServiceImpl implements TaskService {
 
     private Attachment createAttachment (MultipartFile file, UUID taskId) throws IOException {
         Task task = taskRepository.findByIdAndDeletedFalse(taskId)
-                .orElseThrow(()->new TaskNotFoundException("Task not found"));
+                .orElseThrow(()->new TaskNotFoundException(ErrorMessage.TASK_NOT_FOUND));
 
         String fileUrl = fileStorageService.uploadFile(file);
 
@@ -98,8 +99,8 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public TaskDto assignTaskToUser(UUID taskId, UUID userId) throws TaskNotFoundException {
-        Task task =  taskRepository.findByIdAndDeletedFalse(taskId).orElseThrow(()->new TaskNotFoundException("Task not found"));
-        User user = userRepository.findByIdAndDeletedFalse(userId).orElseThrow(()->new UserNotFoundException("User not found"));
+        Task task =  taskRepository.findByIdAndDeletedFalse(taskId).orElseThrow(()->new TaskNotFoundException(ErrorMessage.TASK_NOT_FOUND));
+        User user = userRepository.findByIdAndDeletedFalse(userId).orElseThrow(()->new UserNotFoundException(ErrorMessage.USER_NOT_FOUND));
 
         if(isTaskAssignedToUser(task,userId)){
             return taskMapper.convertToDto(task);
@@ -115,7 +116,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskDto assignPriority(UUID taskId, TaskPriority updatedPriority) {
-        Task task = taskRepository.findByIdAndDeletedFalse(taskId).orElseThrow(()->new TaskNotFoundException("Task not found"));
+        Task task = taskRepository.findByIdAndDeletedFalse(taskId).orElseThrow(()->new TaskNotFoundException(ErrorMessage.TASK_NOT_FOUND));
         task.setPriority(updatedPriority);
         return taskMapper.convertToDto(task);
     }
@@ -123,7 +124,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskDto addAttachmentToTask(UUID taskId, MultipartFile file) throws IOException,TaskNotFoundException {
         Task task = taskRepository.findByIdAndDeletedFalse(taskId)
-                .orElseThrow(()->new TaskNotFoundException("Task not found"));
+                .orElseThrow(()->new TaskNotFoundException(ErrorMessage.TASK_NOT_FOUND));
 
         String fileUrl = fileStorageService.uploadFile(file);
 
@@ -139,12 +140,12 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskDto getTaskProgress(UUID taskId) {
         Task task = taskRepository.findByIdAndDeletedFalse(taskId)
-                .orElseThrow(()->new TaskNotFoundException("Task not found"));
+                .orElseThrow(()->new TaskNotFoundException(ErrorMessage.TASK_NOT_FOUND));
         return taskMapper.convertToDto(task);
     }
     public Comment addCommentToTask(UUID taskId, String content){
         Task task = taskRepository.findByIdAndDeletedFalse(taskId)
-                .orElseThrow(()->new TaskNotFoundException("Task not found"));
+                .orElseThrow(()->new TaskNotFoundException(ErrorMessage.TASK_NOT_FOUND));
 
         Comment comment = Comment.builder()
                 .content(content)
@@ -158,16 +159,16 @@ public class TaskServiceImpl implements TaskService {
     public TaskDto updateTaskState(UUID taskId, TaskStatusUpdateRequest request) throws InvalidTaskStateException, TaskNotFoundException {
 
         Task task = taskRepository.findByIdAndDeletedFalse(taskId)
-                .orElseThrow(()->new TaskNotFoundException("Task not found"));
+                .orElseThrow(()->new TaskNotFoundException(ErrorMessage.TASK_NOT_FOUND));
 
         if(task.getState()== request.state()){
-            throw new TaskStateAlreadySameException("Task is already in the " + request.state());
+            throw new TaskStateAlreadySameException(ErrorMessage.TASK_STATE_ALREADY_SAME);
         }
 
         List<TaskState> validNextStates = VALID_TRANSITIONS.getOrDefault(task.getState(),List.of());
 
         if(!validNextStates.contains(request.state())){
-            throw new InvalidTaskStateException("Cannot transition from "+task.getState() + " to " + request.state());
+            throw new InvalidTaskStateException(ErrorMessage.INVALID_TASK_STATE);
         }
 
         checkReasonRequiredForTask(request.state(),request.reason());
@@ -183,13 +184,13 @@ public class TaskServiceImpl implements TaskService {
 
     public void checkReasonRequiredForTask(TaskState targetState,String reason){
         if((targetState==TaskState.CANCELLED || targetState==TaskState.BLOCKED) && (reason == null || reason.trim().isEmpty()) ){
-            throw new TaskReasonRequiredException("Reason must be provided for" + targetState);
+            throw new TaskReasonRequiredException(ErrorMessage.TASK_REASON_REQUIRED);
         }
     }
     @Override
     public TaskDto updateTaskDetails(UUID taskId, TaskDetailsUpdateRequest request) {
         Task existingTask = taskRepository.findById(taskId)
-                .orElseThrow(()->new TaskNotFoundException("Task not found"));
+                .orElseThrow(()->new TaskNotFoundException(ErrorMessage.TASK_NOT_FOUND));
         existingTask.setDescription(request.description());
         existingTask.setTitle(request.title());
         Task createdTask =  taskRepository.save(existingTask);
@@ -199,7 +200,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public Boolean softDeleteTask(UUID taskId) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(()->new TaskNotFoundException("Task not found"));
+                .orElseThrow(()->new TaskNotFoundException(ErrorMessage.TASK_NOT_FOUND));
         task.setDeleted(true);
         taskRepository.save(task);
         return true;

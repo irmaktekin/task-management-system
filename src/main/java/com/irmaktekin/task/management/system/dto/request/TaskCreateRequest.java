@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.UUID;
 
 public record TaskCreateRequest(@NotBlank String description,
-                                @NotNull TaskState state,
+                                TaskState state,
                                 User assignee,
-                                @NotBlank String acceptanceCriteria,
+                                String acceptanceCriteria,
                                 String reason,
                                 List <Comment> comments,
                                 String title,
