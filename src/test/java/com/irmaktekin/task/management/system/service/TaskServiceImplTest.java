@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -76,6 +77,8 @@ public class TaskServiceImplTest {
     @Mock
     private Authentication authentication;
 
+    private TaskCreateRequest taskCreateRequest;
+
     @BeforeEach
     public void setUp(){
 
@@ -102,7 +105,10 @@ public class TaskServiceImplTest {
         taskDto = new TaskDto(taskId,"Description 1",TaskPriority.HIGH,TaskState.IN_DEVELOPMENT,userDto,"AC1",List.of(commentDto),false,"Title",null,projectId);
 
         file = new MockMultipartFile("file", "example.txt", "text/plain", "File content".getBytes());
-
+        taskCreateRequest = new TaskCreateRequest(
+                "Test task", TaskState.IN_DEVELOPMENT,
+                user, "Acceptance Criteria", "Reason", List.of(comment), "Test task title",projectId
+        );
     }
 
     @Test
@@ -211,10 +217,6 @@ public class TaskServiceImplTest {
 
     @Test
     void createTask_ShouldThrowException_WhenAssigneeNotFound() {
-        TaskCreateRequest taskCreateRequest = new TaskCreateRequest(
-                "Test task", TaskState.IN_DEVELOPMENT,
-                user, "Acceptance Criteria", "Reason", List.of(comment), "Test task title",projectId
-        );
 
         when(userRepository.findByIdAndDeletedFalse(userId)).thenReturn(Optional.empty());
 
@@ -703,6 +705,28 @@ public class TaskServiceImplTest {
 
         verify(taskRepository, times(1)).findByIdAndDeletedFalse(taskId);
         verify(commentRepository, times(1)).save(any(Comment.class));
+    }
+
+    @Test
+    void createTask_ShouldCreateTaskWhenRequestIsValid() throws Exception {
+
+        UUID userId = UUID.randomUUID();
+        User assignee = new User();
+        assignee.setId(userId);
+        assignee.setDeleted(false);
+
+        Task task = new Task();
+        task.setId(taskId);
+
+        when(userRepository.findByIdAndDeletedFalse(any(UUID.class))).thenReturn(java.util.Optional.of(assignee));
+        when(taskMapper.taskCreateRequestToTask(taskCreateRequest)).thenReturn(task);
+        when(taskRepository.save(task)).thenReturn(task);
+        when(taskMapper.convertToDto(task)).thenReturn(taskDto);
+
+        TaskDto createdTaskDto = taskService.createTask(taskCreateRequest);
+
+        assertEquals(task.getId(), createdTaskDto.id());
+        Mockito.verify(taskRepository, Mockito.times(1)).save(task);
     }
 
 }

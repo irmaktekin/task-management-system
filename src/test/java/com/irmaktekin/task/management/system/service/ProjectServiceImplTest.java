@@ -2,6 +2,7 @@ package com.irmaktekin.task.management.system.service;
 
 import com.irmaktekin.task.management.system.common.exception.ProjectNotFoundException;
 import com.irmaktekin.task.management.system.common.exception.UserAlreadyAssignedToProjectException;
+import com.irmaktekin.task.management.system.common.exception.UserNotFoundException;
 import com.irmaktekin.task.management.system.common.mapper.ProjectMapper;
 import com.irmaktekin.task.management.system.common.mapper.TaskMapper;
 import com.irmaktekin.task.management.system.dto.request.ProjectRequest;
@@ -72,7 +73,7 @@ public class ProjectServiceImplTest {
     private final TaskMapper taskMapper = mock(TaskMapper.class);
 
     @BeforeEach
-    public void setUp(){
+    public void setUp() {
         userId = UUID.randomUUID();
         taskId = UUID.randomUUID();
         user = User.builder().id(userId).fullName("Irmak Tekin")
@@ -84,10 +85,10 @@ public class ProjectServiceImplTest {
                 .description("Test Description").departmentName("Deparment1")
                 .title("Task Management Project").build();
 
-        userDto = new UserDto(userId,"Irmak Tekin","irmaktekin",true);
+        userDto = new UserDto(userId, "Irmak Tekin", "irmaktekin", true);
 
-        projectDto = new ProjectDto(projectId, ProjectStatus.IN_PROGRESS,"IT", "Project Description", "Project Title", List.of(userDto));
-        taskDto = new TaskDto(taskId,"Description 1",TaskPriority.HIGH,TaskState.IN_DEVELOPMENT,userDto,"AC1",null,false,"Title",null,projectId);
+        projectDto = new ProjectDto(projectId, ProjectStatus.IN_PROGRESS, "IT", "Project Description", "Project Title", List.of(userDto));
+        taskDto = new TaskDto(taskId, "Description 1", TaskPriority.HIGH, TaskState.IN_DEVELOPMENT, userDto, "AC1", null, false, "Title", null, projectId);
 
         task = Task.builder().id(taskId)
                 .priority(TaskPriority.LOW).state(TaskState.IN_DEVELOPMENT)
@@ -101,41 +102,41 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    public void createProject_ShouldCreateProject_WhenRequestIsValid(){
+    public void createProject_ShouldCreateProject_WhenRequestIsValid() {
 
-        ProjectRequest request = new ProjectRequest(ProjectStatus.IN_PROGRESS,"IT","Test","Description", "Title",List.of(userId));
-        when(projectRepository.existMemberInProject(request.memberIds(),ProjectStatus.IN_PROGRESS)).thenReturn(false);
+        ProjectRequest request = new ProjectRequest(ProjectStatus.IN_PROGRESS, "IT", "Test", "Description", "Title", List.of(userId));
+        when(projectRepository.existMemberInProject(request.memberIds(), ProjectStatus.IN_PROGRESS)).thenReturn(false);
         when(userRepository.findAllById(request.memberIds())).thenReturn(List.of(user));
         when(projectRepository.save(any(Project.class))).thenReturn(project);
         when(projectMapper.convertToDto(any(Project.class))).thenReturn(projectDto);
 
         ProjectDto result = projectService.createProject(request);
 
-        assertEquals("IT",result.departmentName());
-        verify(projectRepository,times(1)).save(any(Project.class));
+        assertEquals("IT", result.departmentName());
+        verify(projectRepository, times(1)).save(any(Project.class));
 
     }
 
     @Test
-    public void createProject_ShouldReturnException_WhenUserAlreadyAssigned(){
-        ProjectRequest request = new ProjectRequest(ProjectStatus.IN_PROGRESS,"Department 1","Test","Description", "Title",List.of(userId));
+    public void createProject_ShouldReturnException_WhenUserAlreadyAssigned() {
+        ProjectRequest request = new ProjectRequest(ProjectStatus.IN_PROGRESS, "Department 1", "Test", "Description", "Title", List.of(userId));
 
         when(projectRepository.existMemberInProject(request.memberIds(), ProjectStatus.IN_PROGRESS)).thenReturn(true);
-        assertThrows(UserAlreadyAssignedToProjectException.class,()->projectService.createProject(request));
-        verify(projectRepository,never()).save(any(Project.class));
+        assertThrows(UserAlreadyAssignedToProjectException.class, () -> projectService.createProject(request));
+        verify(projectRepository, never()).save(any(Project.class));
     }
 
     @Test
-    public void addTaskToProject_ShouldReturnTaskDto_WhenProjectExists(){
-        TaskCreateRequest request = new TaskCreateRequest("Description Test", TaskState.IN_DEVELOPMENT, user,"AC1",null, List.of(comment),"Title",projectId);
+    public void addTaskToProject_ShouldReturnTaskDto_WhenProjectExists() {
+        TaskCreateRequest request = new TaskCreateRequest("Description Test", TaskState.IN_DEVELOPMENT, user, "AC1", null, List.of(comment), "Title", projectId);
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
         when(taskRepository.save(any(Task.class))).thenReturn(task);
         when(taskMapper.convertToDto(task)).thenReturn(taskDto);
 
-        TaskDto result = projectService.addTaskToProject(projectId,request);
+        TaskDto result = projectService.addTaskToProject(projectId, request);
 
-        assertEquals("Title",result.title());
-        verify(taskRepository,times(1)).save(any(Task.class));
+        assertEquals("Title", result.title());
+        verify(taskRepository, times(1)).save(any(Task.class));
     }
 
     @Test
@@ -145,7 +146,7 @@ public class ProjectServiceImplTest {
         when(projectRepository.save(project)).thenReturn(project);
         when(projectMapper.convertToDto(project)).thenReturn(projectDto);
 
-        ProjectRequest request = new ProjectRequest(ProjectStatus.IN_PROGRESS,"IT","Test","Description", "Title",List.of(userId));
+        ProjectRequest request = new ProjectRequest(ProjectStatus.IN_PROGRESS, "IT", "Test", "Description", "Title", List.of(userId));
 
         ProjectDto result = projectService.updateProject(projectId, request);
 
@@ -157,7 +158,7 @@ public class ProjectServiceImplTest {
 
     @Test
     public void updateProject_ShouldThrowProjectNotFoundException_WhenProjectNotFound() {
-        ProjectRequest request = new ProjectRequest(ProjectStatus.IN_PROGRESS,"IT","Test","Description", "Title",List.of(userId));
+        ProjectRequest request = new ProjectRequest(ProjectStatus.IN_PROGRESS, "IT", "Test", "Description", "Title", List.of(userId));
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
@@ -173,7 +174,7 @@ public class ProjectServiceImplTest {
 
         project.setTitle("Existing Title");
         project.setDescription("Existing Description");
-        request = new ProjectRequest(ProjectStatus.IN_PROGRESS,"IT","Test","Description", "Title",List.of(userId));
+        request = new ProjectRequest(ProjectStatus.IN_PROGRESS, "IT", "Test", "Description", "Title", List.of(userId));
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
         when(projectRepository.save(project)).thenReturn(project);
@@ -192,7 +193,7 @@ public class ProjectServiceImplTest {
 
         project.setTitle("Existing Title");
         project.setDescription("Existing Description");
-        ProjectRequest request = new ProjectRequest(ProjectStatus.IN_PROGRESS,"IT","Test","Description", "Title",List.of(userId));
+        ProjectRequest request = new ProjectRequest(ProjectStatus.IN_PROGRESS, "IT", "Test", "Description", "Title", List.of(userId));
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
         when(projectRepository.save(project)).thenReturn(project);
@@ -205,4 +206,43 @@ public class ProjectServiceImplTest {
         assertEquals("Project Description", result.description());
         verify(projectRepository, times(1)).save(project);
     }
+
+    @Test
+    void testSoftDeleteProject_Success() {
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+
+        when(projectRepository.save(any(Project.class))).thenReturn(project);
+
+        Boolean result = projectService.softDeleteProject(projectId);
+
+        verify(projectRepository, times(1)).save(project);
+        assertTrue(result);
+        assertTrue(project.isDeleted());
+    }
+
+    @Test
+    void testSoftDeleteProject_ProjectNotFound() {
+        when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(ProjectNotFoundException.class, () -> {
+            projectService.softDeleteProject(projectId);
+        });
+
+        assertEquals("Project not found", exception.getMessage());
+
+    }
+
+    @Test
+    void createProjectShouldThrowException_WhenNoUserFound() {
+        ProjectRequest request = new ProjectRequest(ProjectStatus.IN_PROGRESS, "IT", "Test", "Description", "Title", List.of(userId));
+
+        when(userRepository.findAllById(anyList())).thenReturn(List.of());
+
+        Exception exception = assertThrows(UserNotFoundException.class, () -> {
+            projectService.createProject(request);
+        });
+
+        assertEquals("One or more users not found!", exception.getMessage());
+    }
+
 }
