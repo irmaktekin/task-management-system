@@ -11,6 +11,7 @@ This project is built using the following technologies:
 - **PostgreSQL**  
 - **Maven**
 - **Jacoco**
+- **Swagger**
 
 ## Features  
 - **Project Management:** Create, update, and delete projects.  
@@ -29,6 +30,12 @@ Make sure you have the following installed:
 ## Endpoints
 ### Task Controller
 ![image](https://github.com/user-attachments/assets/e588a940-9cf6-4433-bbba-5e39b5e8bab1)
+
+### Project Controller
+![image](https://github.com/user-attachments/assets/57e7571f-5f79-4be3-acbc-f5b02290d50a)
+
+### User Controller
+![image](https://github.com/user-attachments/assets/7f69f90d-25b5-401c-a73b-a17f25354024)
 
 
 
