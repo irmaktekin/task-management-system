@@ -1,6 +1,5 @@
 package com.irmaktekin.task.management.system.service;
 
-import com.irmaktekin.task.management.system.common.exception.RoleNotFoundException;
 import com.irmaktekin.task.management.system.common.exception.UserNotFoundException;
 import com.irmaktekin.task.management.system.entity.Role;
 import com.irmaktekin.task.management.system.entity.Task;

@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -42,7 +41,6 @@ public class AuthServiceImpl implements AuthService {
         createdUser.setPassword(hashedPassword);
         createdUser.setActive(userRegisterRequest.active());
         createdUser.setRoles(roles);
-
 
         createdUser = userRepository.save(createdUser);
 

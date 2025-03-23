@@ -84,13 +84,11 @@ public class TaskServiceImpl implements TaskService {
 
     }
 
-    @Transactional(readOnly = true)
     @Override
     public Page<TaskDto> getTasks(Pageable pageable) {
         return taskRepository.findByDeletedFalse(pageable)
                 .map(taskMapper::convertToDto);
     }
-
 
     @Transactional
     @Override

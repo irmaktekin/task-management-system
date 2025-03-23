@@ -1,11 +1,9 @@
 package com.irmaktekin.task.management.system.service.impl;
 
 import com.irmaktekin.task.management.system.common.ErrorMessage;
-import com.irmaktekin.task.management.system.common.exception.TaskNotFoundException;
 import com.irmaktekin.task.management.system.common.exception.UserNotFoundException;
 import com.irmaktekin.task.management.system.dto.response.UserDto;
 import com.irmaktekin.task.management.system.entity.Role;
-import com.irmaktekin.task.management.system.entity.Task;
 import com.irmaktekin.task.management.system.entity.User;
 import com.irmaktekin.task.management.system.enums.RoleType;
 import com.irmaktekin.task.management.system.repository.RoleRepository;
