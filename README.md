@@ -39,11 +39,11 @@ Make sure you have the following installed:
 
 ### Entity Relationship
 
-Project-Task -> One-to-Many
-Project-User -> Many-to-One
-User-Role -> Many-to-Many
-Task-Attachment -> Many-to-Many
-Task-Comment -> One-To-Many
+- Project-Task -> One-to-Many
+- Project-User -> Many-to-One
+- User-Role -> Many-to-Many
+- Task-Attachment -> Many-to-Many
+- Task-Comment -> One-To-Many
 
 
 ### Steps to Run the Project  
