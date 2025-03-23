@@ -38,6 +38,6 @@ public class Project {
     @OneToMany
     private List<User> members;
 
-    @OneToMany(mappedBy = "project",cascade = CascadeType.ALL)
-    private List<Task> tasks;
+    /*@OneToMany(mappedBy = "project",cascade = CascadeType.ALL)
+    private List<Task> tasks;*/
 }
