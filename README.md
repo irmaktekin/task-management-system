@@ -45,3 +45,7 @@ Make sure you have the following installed:
    ```sh
    git clone https://github.com/irmaktekin/task-management-system.git
    cd task-management-system
+
+2. **Run Applicaiton**
+   ```sh
+   mvn spring-boot:run
