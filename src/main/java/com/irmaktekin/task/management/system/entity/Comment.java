@@ -2,6 +2,7 @@ package com.irmaktekin.task.management.system.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,12 +12,13 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column
     private String content;
 
     @ManyToOne
@@ -25,5 +27,5 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "user_id",nullable = false)
-    private User commentOwnerName;
+    private User user;
 }

@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -22,9 +22,10 @@ public class Role {
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false,unique = true)
     private RoleType roleType;
 
-    @ManyToMany(mappedBy = "roles")
-    private List<User> users;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

@@ -20,7 +20,6 @@ public class Attachment {
 
     private String fileName;
     private String fileType;
-    private String fileUrl;
 
     @ManyToOne
     @JoinColumn(name = "task_id",nullable = false)

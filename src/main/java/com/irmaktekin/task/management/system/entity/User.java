@@ -3,12 +3,9 @@ package com.irmaktekin.task.management.system.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import org.springframework.cglib.core.Local;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -24,25 +21,28 @@ public class User {
     private UUID id;
 
     @NotBlank
-    @Column(nullable = false)
+    @Column
     private String fullName;
 
-    @Column(unique = true)
-    private String email;
+    @Column(name = "username", unique = true, nullable = false)
+    private String username;
 
     @Column(nullable = false)
     private String password;
 
-    private boolean isActive;
+    private boolean active;
 
     @OneToMany
     private List<Task> tasks;
 
-    @Column(nullable = false,updatable = false)
-    @CreatedDate
-    private LocalDateTime createdAt;
+    @ManyToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
+    @JoinTable(
+            name="user_roles",
+            joinColumns = @JoinColumn(name="user_id"),
+            inverseJoinColumns = @JoinColumn(name="role_id")
+    )
+    private Set<Role> roles;
 
-    @Column(nullable = false,updatable = false)
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private boolean deleted;
+
 }

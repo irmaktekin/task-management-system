@@ -1,17 +1,16 @@
 package com.irmaktekin.task.management.system.service;
 
 import com.irmaktekin.task.management.system.common.exception.ProjectNotFoundException;
-import com.irmaktekin.task.management.system.dto.request.ProjectCreateRequest;
+import com.irmaktekin.task.management.system.dto.request.ProjectRequest;
+import com.irmaktekin.task.management.system.dto.request.TaskCreateRequest;
 import com.irmaktekin.task.management.system.dto.response.ProjectDto;
-import com.irmaktekin.task.management.system.entity.Project;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
+import com.irmaktekin.task.management.system.dto.response.TaskDto;
 import java.util.UUID;
 
 public interface ProjectService {
-    Project createProject(ProjectCreateRequest projectCreateRequest);
-    Project updateProject(Project project) throws ProjectNotFoundException;
-    Page<ProjectDto> getProjects(Pageable pageable);
-    Project findProjectById(UUID id) throws ProjectNotFoundException;
+    ProjectDto createProject(ProjectRequest projectRequest);
+    TaskDto addTaskToProject(UUID projectId, TaskCreateRequest taskCreateRequest);
+    ProjectDto updateProject(UUID projectId,ProjectRequest projectRequest) throws ProjectNotFoundException;
+   // Page<ProjectDto> getProjects(Pageable pageable);
+    //void softDeleteProject(UUID projectId);
 }

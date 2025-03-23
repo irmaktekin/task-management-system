@@ -3,11 +3,7 @@ package com.irmaktekin.task.management.system.security;
 import com.irmaktekin.task.management.system.entity.Role;
 import com.irmaktekin.task.management.system.entity.User;
 import com.irmaktekin.task.management.system.repository.UserRepository;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -42,4 +38,6 @@ public class UserServiceDetailImpl implements UserDetailsService {
                 .map(role -> new SimpleGrantedAuthority("ROLE_"+role.getRoleType().name()))
                 .collect(Collectors.toSet());
     }
+
+
 }

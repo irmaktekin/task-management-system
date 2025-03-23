@@ -25,7 +25,7 @@ public class Project {
     private ProjectStatus status;
 
     @Column(nullable = false)
-    private String responsibleDepartmentName;
+    private String departmentName;
 
     @Column(nullable = false)
     private String description;
@@ -33,6 +33,11 @@ public class Project {
     @Column(nullable = false)
     private String title;
 
+    private boolean isDeleted;
+
     @OneToMany
     private List<User> members;
+
+    @OneToMany(mappedBy = "project",cascade = CascadeType.ALL)
+    private List<Task> tasks;
 }

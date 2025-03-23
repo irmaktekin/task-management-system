@@ -5,32 +5,29 @@ import com.irmaktekin.task.management.system.common.mapper.TaskMapper;
 import com.irmaktekin.task.management.system.dto.request.TaskCreateRequest;
 import com.irmaktekin.task.management.system.dto.request.TaskDetailsUpdateRequest;
 import com.irmaktekin.task.management.system.dto.request.TaskStatusUpdateRequest;
-import com.irmaktekin.task.management.system.dto.request.TaskUpdateRequest;
 import com.irmaktekin.task.management.system.dto.response.TaskDto;
+import com.irmaktekin.task.management.system.entity.Attachment;
 import com.irmaktekin.task.management.system.entity.Comment;
 import com.irmaktekin.task.management.system.entity.Task;
 import com.irmaktekin.task.management.system.entity.User;
 import com.irmaktekin.task.management.system.enums.TaskPriority;
 import com.irmaktekin.task.management.system.enums.TaskState;
+import com.irmaktekin.task.management.system.repository.AttachmentRepository;
 import com.irmaktekin.task.management.system.repository.CommentRepository;
 import com.irmaktekin.task.management.system.repository.TaskRepository;
 import com.irmaktekin.task.management.system.repository.UserRepository;
 import com.irmaktekin.task.management.system.service.TaskService;
-import jakarta.transaction.TransactionScoped;
-import jakarta.validation.Valid;
+import com.irmaktekin.task.management.system.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -40,68 +37,58 @@ public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
     private final UserRepository userRepository;
+    private final AttachmentRepository attachmentRepository;
+    private final FileStorageService fileStorageService;
+    private final UserService userService;
     private final CommentRepository commentRepository;
 
+
     private static final Map<TaskState, List<TaskState>> VALID_TRANSITIONS = Map.of(
-            TaskState.BACKLOG, List.of(TaskState.IN_ANALYSIS),
-            TaskState.IN_ANALYSIS, List.of(TaskState.BACKLOG, TaskState.IN_DEVELOPMENT,TaskState.BLOCKED),
-            TaskState.IN_DEVELOPMENT, List.of(TaskState.IN_ANALYSIS, TaskState.COMPLETED,TaskState.BLOCKED),
-            TaskState.BLOCKED,List.of(TaskState.IN_DEVELOPMENT,TaskState.IN_ANALYSIS)
+            TaskState.BACKLOG, List.of(TaskState.IN_ANALYSIS,TaskState.CANCELLED,TaskState.IN_DEVELOPMENT),
+            TaskState.IN_ANALYSIS, List.of(TaskState.BACKLOG, TaskState.IN_DEVELOPMENT,TaskState.BLOCKED,TaskState.CANCELLED),
+            TaskState.IN_DEVELOPMENT, List.of(TaskState.IN_ANALYSIS, TaskState.COMPLETED,TaskState.BLOCKED,TaskState.CANCELLED,TaskState.BACKLOG),
+            TaskState.BLOCKED,List.of(TaskState.IN_DEVELOPMENT,TaskState.IN_ANALYSIS,TaskState.CANCELLED),
+            TaskState.CANCELLED,List.of(TaskState.IN_DEVELOPMENT,TaskState.IN_ANALYSIS,TaskState.BACKLOG, TaskState.BLOCKED)
     );
 
     @Override
-    public TaskDto createTask(TaskCreateRequest taskCreateRequest) {
-        assignDefaultPriorityForMemberRoles(taskCreateRequest);
+    public TaskDto createTask(TaskCreateRequest taskCreateRequest) throws Exception {
+
+            User assignee = userRepository.findByIdAndDeletedFalse(taskCreateRequest.assignee().getId())
+                    .orElseThrow(()->new UserNotFoundException("User not found."));
 
         Task task = taskMapper.taskCreateRequestToTask(taskCreateRequest);
 
-        Task savedTask = taskRepository.save(task);
-        return taskMapper.convertToDto(savedTask);
-    }
+        taskRepository.save(task);
 
-    private TaskCreateRequest assignDefaultPriorityForMemberRoles(TaskCreateRequest taskCreateRequest){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(taskCreateRequest.comments()!=null){
+            taskCreateRequest.comments().forEach(comment -> {
+                        comment.setTask(task);
+                        comment.setUser(assignee);
 
-        boolean isAllowed = authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_PROJECT_MANAGER")||
-                          grantedAuthority.getAuthority().equals("ROLE_TEAM_LEADER"));
-
-        if(!isAllowed && taskCreateRequest.priority() == null){
-            return new TaskCreateRequest(
-                    taskCreateRequest.description(),
-                    TaskPriority.LOW,
-                    taskCreateRequest.state(),
-                    taskCreateRequest.assignee(),
-                    taskCreateRequest.acceptanceCriteria(),
-                    taskCreateRequest.reason(),
-                    taskCreateRequest.attachments(),
-                    taskCreateRequest.comments());
+                    }
+            );
+            commentRepository.saveAll(taskCreateRequest.comments());
         }
-        return taskCreateRequest;
+
+        return taskMapper.convertToDto(task);
     }
-    /*
 
+    private Attachment createAttachment (MultipartFile file, UUID taskId) throws IOException {
+        Task task = taskRepository.findByIdAndDeletedFalse(taskId)
+                .orElseThrow(()->new TaskNotFoundException("Task not found"));
 
-    @Override
-    public TaskDto updateTask(UUID taskId,TaskUpdateRequest taskUpdateRequest) throws TaskNotFoundException {
-        Task existingTask = taskRepository.findById(taskId)
-                .orElseThrow(()->new TaskNotFoundException("Task not found with id: "+taskId));
+        String fileUrl = fileStorageService.uploadFile(file);
 
-        User assignee  = userRepository.findById(taskUpdateRequest.assigneeId())
-                        .orElseThrow(()->new UserNotFoundException("User not found"));
+        Attachment attachment= Attachment.builder().fileName(file.getOriginalFilename())
+                .fileType(file.getContentType())
+                .task(task)
+                .build();
 
-        existingTask.setTaskPriority(taskUpdateRequest.taskPriority());
-        existingTask.setAcceptanceCriteria(taskUpdateRequest.acceptanceCriteria());
-        existingTask.setAssignee(assignee);
+        Attachment savedAttachment = attachmentRepository.save(attachment);
+        return savedAttachment;
 
-        validateTaskStatePath(taskUpdateRequest,taskUpdateRequest.taskState());
-        validateTaskStateReason(taskUpdateRequest,taskUpdateRequest.taskState());
-
-        existingTask.setTaskState(taskUpdateRequest.taskState());
-
-        Task updatedTask = taskRepository.save(existingTask);
-        return new TaskDto(updatedTask.getId(),updatedTask.getUserStoryDescription(),updatedTask.getTaskPriority(),updatedTask.getTaskState(),updatedTask.getAssignee().getId(),updatedTask.getAssigneeName(),updatedTask.getAcceptanceCriteria());
-    }*/
+    }
 
     @Transactional(readOnly = true)
     @Override
@@ -113,7 +100,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional
     @Override
-    public TaskDto assignTaskToUser(UUID taskId, UUID userId) {
+    public TaskDto assignTaskToUser(UUID taskId, UUID userId) throws TaskNotFoundException {
         Task task =  taskRepository.findByIdAndDeletedFalse(taskId).orElseThrow(()->new TaskNotFoundException("Task not found"));
         User user = userRepository.findByIdAndDeletedFalse(userId).orElseThrow(()->new UserNotFoundException("User not found"));
 
@@ -125,17 +112,32 @@ public class TaskServiceImpl implements TaskService {
         return taskDto;
     }
 
-    private boolean isTaskAssignedToUser(Task task,UUID userId){
-        return task.getAssignee() != null && task.getAssignee().getId()==userId;
+    protected boolean isTaskAssignedToUser(Task task,UUID userId){
+        return task.getAssignee() != null && task.getAssignee().getId().equals(userId);
     }
-/*
+
     @Override
-    public Task changePriority(UUID taskId, TaskPriority updatedPriority) {
-        Task task = taskRepository.findById(taskId).orElseThrow(()->new TaskNotFoundException("Task not found"));
-        task.setTaskPriority(updatedPriority);
-        return taskRepository.save(task);
+    public TaskDto assignPriority(UUID taskId, TaskPriority updatedPriority) {
+        Task task = taskRepository.findByIdAndDeletedFalse(taskId).orElseThrow(()->new TaskNotFoundException("Task not found"));
+        task.setPriority(updatedPriority);
+        return taskMapper.convertToDto(task);
     }
-*/
+
+    @Override
+    public TaskDto addAttachmentToTask(UUID taskId, MultipartFile file) throws IOException,TaskNotFoundException {
+        Task task = taskRepository.findByIdAndDeletedFalse(taskId)
+                .orElseThrow(()->new TaskNotFoundException("Task not found"));
+
+        String fileUrl = fileStorageService.uploadFile(file);
+
+        Attachment attachment = Attachment.builder().fileName(fileUrl)
+                .fileType(file.getContentType()).task(task).build();
+
+        attachmentRepository.save(attachment);
+
+        return taskMapper.convertToDto(task);
+    }
+
 
     @Override
     public TaskDto getTaskProgress(UUID taskId) {
@@ -143,40 +145,8 @@ public class TaskServiceImpl implements TaskService {
                 .orElseThrow(()->new TaskNotFoundException("Task not found"));
         return taskMapper.convertToDto(task);
     }
-/*
-    @Override
-    public void softDeleteTask(UUID taskId) {
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(()->new TaskNotFoundException("Task not found"));
-        task.setDeleted(true);
-       taskRepository.save(task);
-    }
-
-    public void validateTaskStatePath(TaskUpdateRequest taskUpdateRequest,TaskState targetState){
-        if(taskUpdateRequest.taskState()==TaskState.COMPLETED){
-            throw new TaskAlreadyCompletedException("Task already completed.");
-        }
-        if(targetState==TaskState.CANCELLED){
-            if(taskUpdateRequest.taskState()== TaskState.COMPLETED){
-                throw new TaskAlreadyCompletedException("Task already completed, you cannot change it to cancel.");
-            }
-        }
-        if(targetState == TaskState.BLOCKED){
-            if(taskUpdateRequest.taskState() != TaskState.IN_ANALYSIS && taskUpdateRequest.taskState() != TaskState.IN_DEVELOPMENT){
-                throw new TaskBlockedTransitionException("Task cannot  be moved to 'Block' state.");
-            }
-        }
-    }
-    public void validateTaskStateReason(TaskUpdateRequest taskUpdateRequest, TaskState taskState){
-        if(taskUpdateRequest.taskState()==TaskState.BLOCKED || taskUpdateRequest.taskState()==TaskState.CANCELLED){
-            if(taskUpdateRequest.reason() == null || taskUpdateRequest.reason().isEmpty()){
-                throw new TaskReasonRequiredException("Reason must have some value");
-            }
-        }
-    }
-
     public Comment addCommentToTask(UUID taskId, String content){
-        Task task = taskRepository.findById(taskId)
+        Task task = taskRepository.findByIdAndDeletedFalse(taskId)
                 .orElseThrow(()->new TaskNotFoundException("Task not found"));
 
         Comment comment = Comment.builder()
@@ -188,21 +158,14 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public TaskDto updateTaskDetails(UUID taskId, TaskDetailsUpdateRequest request) {
-        Task existingTask = taskRepository.findById(taskId)
-                .orElseThrow(()->new TaskNotFoundException("Task not found"));
-        existingTask.setUserStoryDescription(request.description());
-        existingTask.setTitle(request.title());
-        Task createdTask =  taskRepository.save(existingTask);
-        return new TaskDto(createdTask.getId(),createdTask.getUserStoryDescription(),createdTask.getTaskPriority(),createdTask.getTaskState(),createdTask.getAssignee().getId(),createdTask.getAssigneeName(),createdTask.getAcceptanceCriteria());
-
-    }
-*/
-    @Override
     public TaskDto updateTaskState(UUID taskId, TaskStatusUpdateRequest request) throws InvalidTaskStateException, TaskNotFoundException {
 
         Task task = taskRepository.findByIdAndDeletedFalse(taskId)
                 .orElseThrow(()->new TaskNotFoundException("Task not found"));
+
+        if(task.getState()== request.state()){
+            throw new TaskStateAlreadySameException("Task is already in the " + request.state());
+        }
 
         List<TaskState> validNextStates = VALID_TRANSITIONS.getOrDefault(task.getState(),List.of());
 
@@ -225,5 +188,15 @@ public class TaskServiceImpl implements TaskService {
         if((targetState==TaskState.CANCELLED || targetState==TaskState.BLOCKED) && (reason == null || reason.trim().isEmpty()) ){
             throw new TaskReasonRequiredException("Reason must be provided for" + targetState);
         }
+    }
+    @Override
+    public TaskDto updateTaskDetails(UUID taskId, TaskDetailsUpdateRequest request) {
+        Task existingTask = taskRepository.findById(taskId)
+                .orElseThrow(()->new TaskNotFoundException("Task not found"));
+        existingTask.setDescription(request.description());
+        existingTask.setTitle(request.title());
+        Task createdTask =  taskRepository.save(existingTask);
+        return taskMapper.convertToDto(createdTask);
+
     }
 }

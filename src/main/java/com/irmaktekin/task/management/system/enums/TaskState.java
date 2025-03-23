@@ -5,7 +5,8 @@ public enum TaskState {
     IN_ANALYSIS,
     IN_DEVELOPMENT,
     COMPLETED,
-    BLOCKED;
+    BLOCKED,
+    CANCELLED;
 
     @Override
     public String toString(){

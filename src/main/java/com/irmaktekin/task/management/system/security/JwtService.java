@@ -2,6 +2,7 @@ package com.irmaktekin.task.management.system.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,14 +31,14 @@ public class JwtService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
 
-        claims.put("iss","https://secure.genuinecoder.com");
+        //claims.put("iss","https://secure.genuinecoder.com");
         SecretKey key = generateKey();
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(Date.from(Instant.now()))
                 .setExpiration(Date.from(Instant.now().plusMillis(VALIDITY)))
-                .signWith(key)
+                .signWith(SignatureAlgorithm.HS512,secretKey)
                 .compact();
     }
     private SecretKey generateKey(){

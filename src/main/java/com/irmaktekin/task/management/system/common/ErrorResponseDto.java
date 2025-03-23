@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Map;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -13,4 +15,6 @@ public class ErrorResponseDto {
     private String message;
     private int statusCode;
     private String errorType;
+    private Map<String, String> validationErrors;
+
 }

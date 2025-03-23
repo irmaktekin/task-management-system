@@ -1,9 +1,12 @@
 package com.irmaktekin.task.management.system.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.irmaktekin.task.management.system.common.exception.TaskNotFoundException;
 import com.irmaktekin.task.management.system.dto.request.TaskCreateRequest;
+import com.irmaktekin.task.management.system.dto.request.TaskStatusUpdateRequest;
+import com.irmaktekin.task.management.system.dto.request.UpdateTaskPriorityRequest;
+import com.irmaktekin.task.management.system.dto.response.CommentDto;
 import com.irmaktekin.task.management.system.dto.response.TaskDto;
+import com.irmaktekin.task.management.system.dto.response.UserDto;
 import com.irmaktekin.task.management.system.entity.Task;
 import com.irmaktekin.task.management.system.entity.User;
 import com.irmaktekin.task.management.system.enums.TaskPriority;
@@ -15,18 +18,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -48,81 +52,111 @@ public class TaskControllerTest {
     private User user;
     private UUID userId;
     private Task task;
-    private UUID taskId;
-    private TaskDto taskDto;
+    private UUID taskId,taskId2,projectId;
+    private UUID commentId;
+    private TaskDto activeTaskDto;
+    private TaskDto deletedTaskDto;
+    private CommentDto commentDto;
+    private UserDto activeUserDto;
 
     @BeforeEach
     void setUp(){
         userId = UUID.randomUUID();
         taskId = UUID.randomUUID();
+        taskId2 = UUID.randomUUID();
+        projectId = UUID.randomUUID();
+        commentId= UUID.randomUUID();
 
-        user = User.builder().id(userId).fullName("Irmak Tekin").email("irmak@test.com")
-                .password("1234").isActive(true).build();
-        task = Task.builder().taskPriority(TaskPriority.HIGH).taskState(TaskState.IN_DEVELOPMENT)
-                .assignee(user).build();
+        activeUserDto = new UserDto(userId,"Irmak Tekin","irmaktekin",true);
+        commentDto = new CommentDto(commentId,"Content TEST",userId);
 
-        taskDto = new TaskDto(taskId,"Task Description",TaskPriority.HIGH,TaskState.IN_DEVELOPMENT,userId,"Irmak","AC-1");
+        activeTaskDto = new TaskDto(taskId,"Task Description",TaskPriority.HIGH,TaskState.IN_DEVELOPMENT,activeUserDto,"Irmak",List.of(commentDto),false,"Title Not Deleted","",projectId);
+        deletedTaskDto = new TaskDto(taskId2,"Task Description",TaskPriority.HIGH,TaskState.IN_DEVELOPMENT,activeUserDto,"Irmak",List.of(commentDto),true,"Title Deleted","",projectId);
         mockMvc= MockMvcBuilders.standaloneSetup(taskController).build();
     }
 
-    @Test
-    void getTasks_ShouldReturnPageOfTasks_WhenTasksExist(){
-        var page = 0;
-        var size = 20;
-        Page<TaskDto> pageTask = new PageImpl<>(List.of(taskDto));
-        when(taskService.getTasks(page,size)).thenReturn(pageTask);
-
-        Page<TaskDto> result = taskController.getTasks(page,size);
-
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).description()).isEqualTo("Task Description");
-        verify(taskService,times(1)).getTasks(0,20);
-    }
-
-    @Test
-    void getTaskById_ShouldReturnTask_whenTaskExist() throws Exception{
-        when(taskService.findTaskById(taskId)).thenReturn(task);
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/tasks/{id}",taskId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.taskPriority").value("HIGH"))
-                .andExpect(jsonPath("$.taskState").value("IN_DEVELOPMENT"));
-
-        verify(taskService,times(1)).findTaskById(taskId);
-    }
 
     @Test
     void createTask_ShouldReturnCreatedTask() throws Exception{
-        TaskCreateRequest taskCreateRequest = new TaskCreateRequest("Task Description",TaskPriority.HIGH,TaskState.IN_DEVELOPMENT.IN_ANALYSIS,userId,"AC-1");
+        TaskCreateRequest taskCreateRequest = new TaskCreateRequest("Desc1",TaskState.IN_DEVELOPMENT,user,"AC-1","Reason",null,"Title",projectId);
 
-        when(taskService.createTask(taskCreateRequest)).thenReturn(task);
+        when(taskService.createTask(any(TaskCreateRequest.class))).thenReturn(activeTaskDto);
 
         mockMvc.perform(post("/api/v1/tasks")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(taskCreateRequest)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(activeTaskDto.id().toString()));
 
-        verify(taskService,times(1)).createTask(taskCreateRequest);
+        verify(taskService,times(1)).createTask(any(TaskCreateRequest.class));
     }
 
-    @Test
-    void updateTask_ShouldReturnUpdatedTask() throws Exception{
-        when(taskService.updateTask(any(Task.class))).thenReturn(task);
 
-        mockMvc.perform(put("/api/v1/tasks/{id}",taskId)
+    @Test
+    void assignPriority_ShouldReturnUpdatedTask() throws Exception {
+        UpdateTaskPriorityRequest priorityRequest = new UpdateTaskPriorityRequest(TaskPriority.HIGH);
+
+        when(taskService.assignPriority(eq(taskId),eq(TaskPriority.HIGH))).thenReturn(activeTaskDto);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/tasks/{taskId}/priority", taskId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(task)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.taskPriority").value("HIGH"))
-                .andExpect(jsonPath("$.taskState").value("IN_DEVELOPMENT"));
+                        .content(new ObjectMapper().writeValueAsString(priorityRequest)))
+                .andExpect(status().isOk());
 
-        verify(taskService,times(1)).updateTask(task);
+        verify(taskService, times(1)).assignPriority(eq(taskId), eq(TaskPriority.HIGH));
     }
 
     @Test
-    void updateTask_ShouldThrowException_WhenTaskDoesNotExist() throws Exception {
-        when(taskService.updateTask(any(Task.class))).thenThrow(new TaskNotFoundException("Task not found with id: "+ taskId));
+    @WithMockUser(roles = "PROJECT_MANAGER")
+    void assignUserToTask_ShouldReturnOk_WhenTaskIsAssigned() throws Exception {
+        when(taskService.assignTaskToUser(taskId,userId)).thenReturn(activeTaskDto);
 
-        assertThrows(TaskNotFoundException.class,()->taskService.updateTask(task));
+        mockMvc.perform(put("/api/v1/tasks/{taskId}/assignee/{userId}",taskId,userId))
+                .andExpect(status().isOk());
+        verify(taskService,times(1)).assignTaskToUser(taskId,userId);
+    }
+
+    @Test
+    @WithMockUser(roles = "PROJECT_MANAGER")
+    void getTaskProgress_ShouldReturnOk_WhenUserHasProjectManagerRole() throws Exception{
+        when(taskService.getTaskProgress(taskId)).thenReturn(activeTaskDto);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/tasks/{taskId}/status",taskId))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void addAttachmentToTask_ShouldReturnOk() throws Exception{
+        UUID taskId = UUID.randomUUID();
+        MockMultipartFile file = new MockMultipartFile("file","test.txt","text/plain","Test content".getBytes());
+        when(taskService.addAttachmentToTask(eq(taskId),any(MultipartFile.class))).thenReturn(activeTaskDto);
+
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/tasks/{taskI}/attachments",taskId)
+                .file(file)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(activeTaskDto.id().toString()));
+
+        verify(taskService,times(1)).addAttachmentToTask(eq(taskId),any(MultipartFile.class));
+    }
+
+    @Test
+    void updatedTaskState_ShouldReturnUpdatedTask() throws Exception{
+        UUID taskId = UUID.randomUUID();
+        TaskStatusUpdateRequest taskStatusUpdateRequest = new TaskStatusUpdateRequest(TaskState.IN_DEVELOPMENT,"Reason");
+        UserDto userDto = new UserDto(userId,"Irmak Tekin","irmaktekin",true);
+
+            TaskDto updatedTask = new TaskDto(taskId,"Description 1",TaskPriority.HIGH,TaskState.IN_DEVELOPMENT,userDto,"AC1",List.of(commentDto),false,"Title","Reason",projectId);
+
+            when(taskService.updateTaskState(eq(taskId),eq(taskStatusUpdateRequest))).thenReturn(updatedTask);
+
+            mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/tasks/{taskId}/status",taskId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"state\":\"IN_DEVELOPMENT\", \"reason\":\"Reason\"}"))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.state").value("IN_DEVELOPMENT"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.reason").value("Reason"))
+                    .andDo(MockMvcResultHandlers.print());
+
     }
 }
