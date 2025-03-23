@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -86,19 +87,14 @@ public class ProjectServiceImpl implements ProjectService {
        return projectMapper.convertToDto(updatedProject);
 
     }
-/*
-    @Transactional(readOnly = true)
+
     @Override
-    public Page<ProjectDto> getProjects(Pageable pageable) {
-        return projectRepository.findByDeletedFalse(pageable)
-                .map(ProjectMapper::convertToDto);
-    }*/
-/*
-    @Override
-    public void softDeleteProject(UUID projectId) {
+    public Boolean softDeleteProject(UUID projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(()->new ProjectNotFoundException("Project not found"));
         project.setDeleted(true);
         projectRepository.save(project);
-    }*/
+
+        return true;
+    }
 }

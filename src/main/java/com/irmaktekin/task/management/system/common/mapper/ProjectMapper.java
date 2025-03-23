@@ -9,7 +9,7 @@ import org.mapstruct.*;
 @Mapper(config = DefaultMapStructConfiguration.class,uses = UserMapper.class)
 public interface ProjectMapper {
 
-    @Mapping(source = "departmentName", target = "departmentName")
+   // @Mapping(source = "departmentName", target = "departmentName")
     @Mapping(source = "projectStatus", target = "status")
     @Mapping(target = "id", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

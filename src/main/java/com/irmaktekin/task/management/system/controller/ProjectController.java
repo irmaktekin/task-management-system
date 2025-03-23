@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.SplittableRandom;
 import java.util.UUID;
 
 @RestController
@@ -48,17 +49,19 @@ public class ProjectController {
     }
 
     @PutMapping("/{projectId}")
-    @Operation(summary = "Update project by ID")
+    @Operation(summary = "Update project by id")
     @PreAuthorize("hasRole('PROJECT_MANAGER')")
     public ResponseEntity<ProjectDto> updateProject(@PathVariable UUID projectId, @Valid @RequestBody ProjectRequest projectRequest){
         return ResponseEntity.ok(projectService.updateProject(projectId,projectRequest));
     }
-/*
-    @PutMapping("/{projectId}")
-    public ResponseEntity<Void> softDeleteProject(@PathVariable UUID projectId){
-        projectService.softDeleteProject(projectId);
-        return ResponseEntity.noContent().build();
-    }*/
+
+    @Operation(summary = "Delete project by id")
+    @PreAuthorize("hasRole('PROJECT_MANAGER')")
+    @PutMapping("/soft-delete/{projectId}")
+    public ResponseEntity<Boolean> softDeleteProject(@PathVariable UUID projectId){
+        Boolean isDeleted = projectService.softDeleteProject(projectId);
+        return ResponseEntity.ok(isDeleted);
+    }
 
     @PreAuthorize("hasRole('PROJECT_MANAGER') or hasRole('TEAM_LEADER')")
     @Operation(summary = "Add task to the project")
@@ -67,4 +70,5 @@ public class ProjectController {
         TaskDto taskDto = projectService.addTaskToProject(projectId,taskCreateRequest);
         return ResponseEntity.ok().body(taskDto);
     }
+
 }
