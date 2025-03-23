@@ -37,6 +37,13 @@ Make sure you have the following installed:
 ### User Controller
 ![image](https://github.com/user-attachments/assets/7f69f90d-25b5-401c-a73b-a17f25354024)
 
+### Entity Relationship
+
+Project-Task -> One-to-Many
+Project-User -> Many-to-One
+User-Role -> Many-to-Many
+Task-Attachment -> Many-to-Many
+Task-Comment -> One-To-Many
 
 
 ### Steps to Run the Project  
