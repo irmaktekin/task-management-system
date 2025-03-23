@@ -42,7 +42,7 @@ public class SecurityConfig {
 
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/v1/auth/**","/swagger-ui/**","/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/v1/tasks/{taskId}/assignee/{assigneeId}").hasAnyRole("PROJECT_MANAGER","TEAM_LEADER")
                         .requestMatchers(HttpMethod.GET,"/api/v1/tasks/{taskId}/status").hasAnyRole("PROJECT_MANAGER","TEAM_LEADER")
                         .requestMatchers(HttpMethod.PATCH,"/api/v1/tasks/{taskId}/details").hasAnyRole("PROJECT_MANAGER","TEAM_LEADER")

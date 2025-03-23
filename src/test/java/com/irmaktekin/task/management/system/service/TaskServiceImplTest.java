@@ -216,16 +216,6 @@ public class TaskServiceImplTest {
     }
 
     @Test
-    void createTask_ShouldThrowException_WhenAssigneeNotFound() {
-
-        when(userRepository.findByIdAndDeletedFalse(userId)).thenReturn(Optional.empty());
-
-        assertThrows(UserNotFoundException.class, () -> taskService.createTask(taskCreateRequest));
-
-        verify(userRepository, times(1)).findByIdAndDeletedFalse(userId);
-    }
-
-    @Test
     void assignTaskToUser_ShouldThrowException_WhenUserNotFound() {
         UUID nonExistentUserId = UUID.randomUUID();
 
@@ -718,7 +708,6 @@ public class TaskServiceImplTest {
         Task task = new Task();
         task.setId(taskId);
 
-        when(userRepository.findByIdAndDeletedFalse(any(UUID.class))).thenReturn(java.util.Optional.of(assignee));
         when(taskMapper.taskCreateRequestToTask(taskCreateRequest)).thenReturn(task);
         when(taskRepository.save(task)).thenReturn(task);
         when(taskMapper.convertToDto(task)).thenReturn(taskDto);

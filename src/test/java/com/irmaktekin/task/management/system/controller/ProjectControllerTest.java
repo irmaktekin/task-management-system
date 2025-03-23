@@ -37,6 +37,8 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
@@ -131,5 +133,34 @@ public class ProjectControllerTest {
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(taskDto, responseEntity.getBody());
+    }
+
+    @Test
+    public void softDeleteProject_ShouldReturnOk() throws Exception {
+        UUID userId = UUID.randomUUID();
+
+        when(projectService.softDeleteProject(projectId)).thenReturn(null);
+
+        mockMvc.perform(put("/api/v1/projects/soft-delete/{projectId}", projectId))
+                .andExpect(status().isOk());
+
+        verify(projectService, times(1)).softDeleteProject(projectId);
+    }
+
+    @Test
+    void updateProject_ShouldReturnOk_WhenRequestIsValid() throws Exception {
+        UUID projectId = UUID.randomUUID();
+        UserDto userDto = new UserDto(userId, "Irmak Tekin", "irmaktekin", true);
+        ProjectRequest projectRequest = new ProjectRequest(ProjectStatus.IN_PROGRESS,"Deparment 1","Test", "Updated description","Title", List.of(userId));
+        ProjectDto projectDto = new ProjectDto(projectId, ProjectStatus.IN_PROGRESS, "Deparment 1", "Updated description","Title",List.of(userDto));
+
+        when(projectService.updateProject(eq(projectId), any(ProjectRequest.class))).thenReturn(projectDto);
+
+        mockMvc.perform(put("/api/v1/projects/{projectId}", projectId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(projectRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(projectId.toString()))
+                .andExpect(jsonPath("$.description").value("Updated description"));
     }
 }

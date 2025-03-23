@@ -45,11 +45,11 @@ public class AuthServiceImplTest {
     @BeforeEach
     public void setUp() {
         userRegisterRequest = new UserRegisterRequest("John Doe", "john.doe", "password", true, Set.of(RoleType.MEMBER),false);
-        when(passwordEncoder.encode(anyString())).thenReturn("hjao392rurjajkfjhd2081.");
     }
 
     @Test
     public void testCreateUser_Success() throws Exception {
+        when(passwordEncoder.encode(anyString())).thenReturn("hjao392rurjajkfjhd2081.");
         Role role = new Role();
         when(roleRepository.findByRoleType(RoleType.MEMBER)).thenReturn(Optional.of(role));
 
@@ -82,5 +82,17 @@ public class AuthServiceImplTest {
         });
 
         assertEquals("Role not found: MEMBER", thrown.getMessage());
+    }
+    @Test
+    void getRolesFromRoleTypes_ShouldThrowException_WhenRoleNotFound() {
+        Set<RoleType> roleTypes = Set.of(RoleType.PROJECT_MANAGER);
+
+        when(roleRepository.findByRoleType(RoleType.PROJECT_MANAGER)).thenReturn(Optional.empty());
+
+        RoleNotFoundException exception = assertThrows(RoleNotFoundException.class, () -> {
+            authService.getRolesFromRoleTypes(roleTypes);
+        });
+
+        assertEquals("Role not found: PROJECT_MANAGER", exception.getMessage());
     }
 }

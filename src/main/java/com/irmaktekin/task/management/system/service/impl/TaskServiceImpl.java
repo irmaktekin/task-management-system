@@ -52,17 +52,13 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskDto createTask(TaskCreateRequest taskCreateRequest) throws Exception {
 
-            User assignee = userRepository.findByIdAndDeletedFalse(taskCreateRequest.assignee().getId())
-                    .orElseThrow(()->new UserNotFoundException(ErrorMessage.USER_NOT_FOUND));
-
-        Task task = taskMapper.taskCreateRequestToTask(taskCreateRequest);
+       Task task = taskMapper.taskCreateRequestToTask(taskCreateRequest);
 
         taskRepository.save(task);
 
         if(taskCreateRequest.comments()!=null){
             taskCreateRequest.comments().forEach(comment -> {
                         comment.setTask(task);
-                        comment.setUser(assignee);
 
                     }
             );

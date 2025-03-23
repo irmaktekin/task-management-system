@@ -58,7 +58,6 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(()->new ProjectNotFoundException("Project not found"));
         Task task = new Task();
         task.setDescription(taskCreateRequest.description());
-        task.setAssignee(taskCreateRequest.assignee());
         task.setComments(taskCreateRequest.comments());
         task.setAcceptanceCriteria(taskCreateRequest.acceptanceCriteria());
         task.setTitle(taskCreateRequest.title());

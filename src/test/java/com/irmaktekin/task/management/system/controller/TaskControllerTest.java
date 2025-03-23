@@ -19,6 +19,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -32,6 +36,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.mock.http.server.reactive.MockServerHttpRequest.patch;
@@ -60,6 +66,9 @@ public class TaskControllerTest {
     private TaskDto deletedTaskDto;
     private CommentDto commentDto;
     private UserDto activeUserDto;
+    private Pageable pageable;
+    private Page<TaskDto> taskPage;
+
 
     @BeforeEach
     void setUp(){
@@ -75,6 +84,10 @@ public class TaskControllerTest {
         activeTaskDto = new TaskDto(taskId,"Task Description",TaskPriority.HIGH,TaskState.IN_DEVELOPMENT,activeUserDto,"Irmak",List.of(commentDto),false,"Title Not Deleted","",projectId);
         deletedTaskDto = new TaskDto(taskId2,"Task Description",TaskPriority.HIGH,TaskState.IN_DEVELOPMENT,activeUserDto,"Irmak",List.of(commentDto),true,"Title Deleted","",projectId);
         mockMvc= MockMvcBuilders.standaloneSetup(taskController).build();
+
+        pageable = PageRequest.of(0, 20);
+        List<TaskDto> taskList = List.of(activeTaskDto);
+        taskPage = new PageImpl<>(taskList, pageable, taskList.size());
     }
 
 
@@ -166,7 +179,7 @@ public class TaskControllerTest {
     public void softDeleteTask_ShouldReturnOk() throws Exception {
         UUID taskId = UUID.randomUUID();
 
-        when(taskService.softDeleteTask(userId)).thenReturn(null);
+        when(taskService.softDeleteTask(taskId)).thenReturn(null);
 
         mockMvc.perform(put("/api/v1/tasks/soft-delete/{taskId}", taskId))
                 .andExpect(status().isOk());
@@ -192,5 +205,19 @@ public class TaskControllerTest {
                 .andExpect(jsonPath("$.description").value("Updated Description"));
 
         verify(taskService, times(1)).updateTaskDetails(eq(taskId), eq(request));
+    }
+
+    @Test
+    void getTasks_ShouldReturnPaginatedTasks() {
+        when(taskService.getTasks(pageable)).thenReturn(taskPage);
+
+        Page<TaskDto> result = taskController.getTasks(pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(1, result.getContent().size());
+        assertEquals("Title Not Deleted", result.getContent().get(0).title());
+
+        verify(taskService, times(1)).getTasks(pageable);
     }
 }

@@ -7,3 +7,5 @@ HELP.md
 *.ipr
 
 target/
+
+uploads/

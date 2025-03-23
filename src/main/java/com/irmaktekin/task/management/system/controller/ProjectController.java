@@ -27,13 +27,6 @@ public class ProjectController {
         this.projectService = projectService;
     }
 
-    /*@PreAuthorize("hasRole('PROJECT_MANAGER')")
-    @Operation(summary = "List all projects with pagination")
-    @GetMapping
-    public Page<ProjectDto> getProjects(@PageableDefault(page = 0,size = 20) Pageable pageable){
-        return projectService.getProjects(pageable);
-    }*/
-
     @PreAuthorize("hasRole('PROJECT_MANAGER')")
     @Operation(summary = "Create project")
     @PostMapping

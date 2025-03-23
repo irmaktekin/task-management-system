@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UserAlreadyExistException.class)
-    public ResponseEntity<ErrorResponseDto> handleBadCredentialsException(UserAlreadyExistException ex) {
+    public ResponseEntity<ErrorResponseDto> handleUserAlreadyExistException(UserAlreadyExistException ex) {
         return createErrorResponse(ex,HttpStatus.CONFLICT);
     }
 
