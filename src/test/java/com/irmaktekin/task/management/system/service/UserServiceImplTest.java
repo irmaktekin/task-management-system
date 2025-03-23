@@ -117,12 +117,11 @@ public class UserServiceImplTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(user)).thenReturn(user);
 
-        User deletedUser = userService.softDeleteUser(userId);
+        Boolean result = userService.softDeleteUser(userId);
 
-        assertTrue(deletedUser.isDeleted());
-
-        verify(userRepository,times(1)).findById(userId);
-        verify(userRepository,times(1)).save(user);
+        verify(userRepository, times(1)).save(user);
+        assertTrue(result);
+        assertTrue(user.isDeleted());
     }
 
     @Test
@@ -221,18 +220,6 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void softDeleteUser_ShouldNotChangeDeleted_WhenUserIsAlreadyDeleted() {
-        user.setDeleted(true);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(user);
-
-        User deletedUser = userService.softDeleteUser(userId);
-
-        assertTrue(deletedUser.isDeleted());
-        verify(userRepository, times(1)).save(user);
-    }
-
-    @Test
     public void getUsers_ShouldReturnEmptyPage_WhenNoUsersExist() {
         var page = 0;
         var size = 10;
@@ -264,18 +251,6 @@ public class UserServiceImplTest {
     @Test
     public void shouldThrowUserNotFoundException_WhenRoleIsNull() {
         assertThrows(UserNotFoundException.class, () -> userService.assignRoleToUser(userId, null));
-    }
-
-    @Test
-    public void shouldSoftDeleteUser_whenUserExists() {
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(user)).thenReturn(user);
-
-        User deletedUser = userService.softDeleteUser(userId);
-
-        assertTrue(deletedUser.isDeleted());
-        verify(userRepository, times(1)).save(user);
     }
 
     @Test

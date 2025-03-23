@@ -37,9 +37,9 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(user));
     }
 
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> softDeleteUser(@PathVariable UUID userId){
-        userService.softDeleteUser(userId);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/{userId}/soft-delete")
+    public ResponseEntity<Boolean> softDeleteUser(@PathVariable UUID userId){
+        Boolean isDeleted =  userService.softDeleteUser(userId);
+        return ResponseEntity.ok(isDeleted);
     }
 }

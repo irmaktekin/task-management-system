@@ -1,8 +1,11 @@
 package com.irmaktekin.task.management.system.service.impl;
 
+import com.irmaktekin.task.management.system.common.ErrorMessage;
+import com.irmaktekin.task.management.system.common.exception.TaskNotFoundException;
 import com.irmaktekin.task.management.system.common.exception.UserNotFoundException;
 import com.irmaktekin.task.management.system.dto.response.UserDto;
 import com.irmaktekin.task.management.system.entity.Role;
+import com.irmaktekin.task.management.system.entity.Task;
 import com.irmaktekin.task.management.system.entity.User;
 import com.irmaktekin.task.management.system.enums.RoleType;
 import com.irmaktekin.task.management.system.repository.RoleRepository;
@@ -31,11 +34,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User softDeleteUser(UUID userId) {
+    public Boolean softDeleteUser(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(()->new UserNotFoundException("User not found"));
+                .orElseThrow(()->new UserNotFoundException(ErrorMessage.USER_NOT_FOUND));
         user.setDeleted(true);
-        return userRepository.save(user);
+        userRepository.save(user);
+        return true;
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.irmaktekin.task.management.system.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.irmaktekin.task.management.system.dto.request.TaskCreateRequest;
+import com.irmaktekin.task.management.system.dto.request.TaskDetailsUpdateRequest;
 import com.irmaktekin.task.management.system.dto.request.TaskStatusUpdateRequest;
 import com.irmaktekin.task.management.system.dto.request.UpdateTaskPriorityRequest;
 import com.irmaktekin.task.management.system.dto.response.CommentDto;
@@ -33,6 +34,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.mock.http.server.reactive.MockServerHttpRequest.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -158,5 +160,37 @@ public class TaskControllerTest {
                     .andExpect(MockMvcResultMatchers.jsonPath("$.reason").value("Reason"))
                     .andDo(MockMvcResultHandlers.print());
 
+    }
+
+    @Test
+    public void softDeleteTask_ShouldReturnOk() throws Exception {
+        UUID taskId = UUID.randomUUID();
+
+        when(taskService.softDeleteTask(userId)).thenReturn(null);
+
+        mockMvc.perform(put("/api/v1/tasks/soft-delete/{taskId}", taskId))
+                .andExpect(status().isOk());
+
+        verify(taskService, times(1)).softDeleteTask(taskId);
+    }
+
+    @Test
+    public void updateTaskDetails_ShouldReturnOk() throws Exception {
+        UUID taskId = UUID.randomUUID();
+        TaskDetailsUpdateRequest request = new TaskDetailsUpdateRequest("Updated Description", "New Title");
+
+        UserDto userDto = new UserDto(userId,"Irmak Tekin","irmaktekin",true);
+        TaskDto taskDto = new TaskDto(taskId,"Updated Description",TaskPriority.HIGH,TaskState.IN_DEVELOPMENT,userDto,"AC1",List.of(commentDto),false,"New Title","Reason",projectId);
+
+        when(taskService.updateTaskDetails(eq(taskId), eq(request))).thenReturn(taskDto);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/tasks/{taskId}/details", taskId)
+                        .contentType("application/json")
+                        .content("{\"title\":\"New Title\", \"description\":\"Updated Description\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("New Title"))
+                .andExpect(jsonPath("$.description").value("Updated Description"));
+
+        verify(taskService, times(1)).updateTaskDetails(eq(taskId), eq(request));
     }
 }

@@ -8,6 +8,7 @@ import com.irmaktekin.task.management.system.entity.Task;
 import com.irmaktekin.task.management.system.entity.User;
 import com.irmaktekin.task.management.system.enums.TaskPriority;
 import com.irmaktekin.task.management.system.enums.TaskState;
+import com.irmaktekin.task.management.system.repository.UserRepository;
 import com.irmaktekin.task.management.system.service.AuthService;
 import com.irmaktekin.task.management.system.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,10 +25,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -40,6 +43,9 @@ public class UserControllerTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private UserRepository userRepository;
 
     @Mock
     private AuthService authService;
@@ -141,5 +147,16 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.id").value(userId.toString()));
     }
 
+    @Test
+    public void softDeleteUser_ShouldReturnOk() throws Exception {
+        UUID userId = UUID.randomUUID();
+
+        when(userService.softDeleteUser(userId)).thenReturn(null);
+
+        mockMvc.perform(put("/api/v1/users/{userId}/soft-delete", userId))
+                .andExpect(status().isOk());
+
+        verify(userService, times(1)).softDeleteUser(userId);
+    }
 
 }

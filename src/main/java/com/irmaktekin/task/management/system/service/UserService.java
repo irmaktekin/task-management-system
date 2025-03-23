@@ -12,6 +12,6 @@ public interface UserService {
     Page<UserDto> getUsers(int page, int size);
     User findUserById(UUID id) throws UserNotFoundException;
     User assignRoleToUser(UUID userId, RoleType roleType);
-    User softDeleteUser(UUID userId);
+    Boolean softDeleteUser(UUID userId);
     User getUserByName(String username);
 }
