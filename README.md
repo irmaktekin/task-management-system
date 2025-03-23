@@ -24,7 +24,13 @@ This project is built using the following technologies:
 Make sure you have the following installed:  
 - **Java 21**  
 - **Maven**  
-- **PostgreSQL**  
+- **PostgreSQL**
+
+## Endpoints
+### Task Controller
+![image](https://github.com/user-attachments/assets/e588a940-9cf6-4433-bbba-5e39b5e8bab1)
+
+
 
 ### Steps to Run the Project  
 
