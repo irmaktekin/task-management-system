@@ -22,5 +22,5 @@ public interface TaskService {
     TaskDto addAttachmentToTask(UUID taskId, MultipartFile file) throws Exception;
     TaskDto updateTaskState(UUID taskId, TaskStatusUpdateRequest request) throws InvalidTaskStateException, TaskNotFoundException;
     TaskDto updateTaskDetails(UUID taskId, TaskDetailsUpdateRequest request);
-
+    Boolean softDeleteTask(UUID projectId);
 }

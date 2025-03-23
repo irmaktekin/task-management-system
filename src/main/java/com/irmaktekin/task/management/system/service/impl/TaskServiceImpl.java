@@ -6,10 +6,7 @@ import com.irmaktekin.task.management.system.dto.request.TaskCreateRequest;
 import com.irmaktekin.task.management.system.dto.request.TaskDetailsUpdateRequest;
 import com.irmaktekin.task.management.system.dto.request.TaskStatusUpdateRequest;
 import com.irmaktekin.task.management.system.dto.response.TaskDto;
-import com.irmaktekin.task.management.system.entity.Attachment;
-import com.irmaktekin.task.management.system.entity.Comment;
-import com.irmaktekin.task.management.system.entity.Task;
-import com.irmaktekin.task.management.system.entity.User;
+import com.irmaktekin.task.management.system.entity.*;
 import com.irmaktekin.task.management.system.enums.TaskPriority;
 import com.irmaktekin.task.management.system.enums.TaskState;
 import com.irmaktekin.task.management.system.repository.AttachmentRepository;
@@ -198,5 +195,13 @@ public class TaskServiceImpl implements TaskService {
         Task createdTask =  taskRepository.save(existingTask);
         return taskMapper.convertToDto(createdTask);
 
+    }
+    @Override
+    public Boolean softDeleteTask(UUID taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(()->new TaskNotFoundException("Task not found"));
+        task.setDeleted(true);
+        taskRepository.save(task);
+        return true;
     }
 }

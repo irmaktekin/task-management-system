@@ -729,4 +729,27 @@ public class TaskServiceImplTest {
         Mockito.verify(taskRepository, Mockito.times(1)).save(task);
     }
 
+    @Test
+    void softDeleteShouldSetDeletedFalse_WhenTaskExist() {
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+
+        when(taskRepository.save(any(Task.class))).thenReturn(task);
+
+        Boolean result = taskService.softDeleteTask(taskId);
+
+        verify(taskRepository, times(1)).save(task);
+        assertTrue(result);
+        assertTrue(task.isDeleted());
+    }
+
+    @Test
+    void softDeleteShouldThrowTaskNotFound_WhenProjectDoesNotExist() {
+        when(taskRepository.findById(projectId)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(TaskNotFoundException.class, () -> {
+            taskService.softDeleteTask(projectId);
+        });
+
+        assertEquals("Task not found", exception.getMessage());
+    }
 }

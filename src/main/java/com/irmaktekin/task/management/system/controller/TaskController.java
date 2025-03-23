@@ -101,4 +101,11 @@ public class TaskController {
         return ResponseEntity.ok(taskDto);
     }
 
+    @Operation(summary = "Delete task by id")
+    @PutMapping("/soft-delete/{taskId}")
+    public ResponseEntity<Boolean> softDeleteProject(@PathVariable UUID taskId){
+        Boolean isDeleted = taskService.softDeleteTask(taskId);
+        return ResponseEntity.ok(isDeleted);
+    }
+
 }

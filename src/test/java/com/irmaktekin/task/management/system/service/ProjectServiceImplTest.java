@@ -208,7 +208,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void testSoftDeleteProject_Success() {
+    void softDeleteShouldSetDeletedFalse_WhenProjectExist() {
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
 
         when(projectRepository.save(any(Project.class))).thenReturn(project);
@@ -221,7 +221,7 @@ public class ProjectServiceImplTest {
     }
 
     @Test
-    void testSoftDeleteProject_ProjectNotFound() {
+    void softDeleteShouldThrowProjetNotFound_WhenProjectDoesNotExist() {
         when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(ProjectNotFoundException.class, () -> {
