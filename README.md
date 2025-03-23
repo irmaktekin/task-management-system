@@ -9,7 +9,8 @@ This project is built using the following technologies:
 - **Spring Boot** (Spring Web, Spring Data JPA, Spring Security)  
 - **Hibernate**  
 - **PostgreSQL**  
-- **Maven**  
+- **Maven**
+- **Jacoco**
 
 ## Features  
 - **Project Management:** Create, update, and delete projects.  
